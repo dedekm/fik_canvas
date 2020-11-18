@@ -1,0 +1,17 @@
+doctype html
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+
+  body
+    block content
+
+    if process.env.GOOGLE_ANALYTICS_ID
+      // Global site tag (gtag.js) - Google Analytics
+      script(async src='https://www.googletagmanager.com/gtag/js?id=' + process.env.GOOGLE_ANALYTICS_ID)
+      script.
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '#{process.env.GOOGLE_ANALYTICS_ID}');
