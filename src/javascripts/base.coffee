@@ -38,7 +38,7 @@ do ->
 
   setSize = (event) ->
     $btn = setButtonActive(event)
-    tool.setSize $btn.data('value') * 2
+    tool.setSize $btn.data('value')
 
   mouseDown = (event) ->
     clicked = true

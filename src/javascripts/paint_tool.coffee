@@ -6,11 +6,13 @@ roundToPixel = (n, size) ->
 
 class PaintTool
 
-  COLORS =
+  ALLOWED_COLORS =
     black: "#000000"
     blue: "#0000ff"
     green: "#00ff00"
     white: "#ffffff"
+
+  ALLOWED_SIZES = [ 2, 4, 8 ]
 
   constructor: (canvas) ->
     @canvas = canvas
@@ -22,12 +24,12 @@ class PaintTool
     @color = color
 
   setSize: (size) ->
-    console.log size
+    return if ALLOWED_SIZES.indexOf(size) == -1
     @size = size
 
   hexColor: (color) ->
     color ||= @color
-    COLORS[color]
+    ALLOWED_COLORS[color]
 
   bline: (x0, y0, x1, y1, size) ->
     dx = Math.abs(x1 - x0)
