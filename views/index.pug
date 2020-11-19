@@ -1,14 +1,15 @@
 extends layout
 
 block content
-  canvas#fik-canvas(width='800' height='500')
-  
-  .f-controls
-    button.f-btn.f-btn-color(data-value='green') GREEN
-    button.f-btn.f-btn-color(data-value='blue') BLUE
-    button.f-btn.f-btn-color(data-value='black') BLACK
-    button.f-btn.f-btn-size(data-value=1) 1x
-    button.f-btn.f-btn-size(data-value=2) 2x
-    button.f-btn.f-btn-size(data-value=3) 3x
+  .f-container
+    canvas#f-canvas(width='500' height='500')
+
+    .f-controls
+      button.f-btn.f-btn-color(data-value='green') GREEN
+      button.f-btn.f-btn-color(data-value='blue') BLUE
+      button.f-btn.f-btn-color(data-value='black') BLACK
+      button.f-btn.f-btn-size(data-value=1) 1x
+      button.f-btn.f-btn-size(data-value=2) 2x
+      button.f-btn.f-btn-size(data-value=3) 3x
 
   script(src='/javascripts/base.js')

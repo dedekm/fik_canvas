@@ -3,6 +3,13 @@ body {
   margin: 0;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif; }
 
+.f-container {
+  margin: 0 auto;
+  width: 500px; }
+
+#f-canvas {
+  cursor: pointer; }
+
 .f-controls {
   margin: 10px; }
   .f-controls .f-btn {

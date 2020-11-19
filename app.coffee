@@ -17,7 +17,7 @@ createCanvas = require('canvas').createCanvas
 Canvas = require('canvas').Canvas
 Paint = require('./src/javascripts/paint_tool.coffee')
 
-canvas = createCanvas(800, 500)
+canvas = createCanvas(500, 500)
 tool = new Paint(canvas)
 
 # Socket.io
