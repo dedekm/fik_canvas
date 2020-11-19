@@ -11,8 +11,32 @@ body {
   cursor: pointer; }
 
 .f-controls {
-  margin: 10px; }
+  margin: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; }
   .f-controls .f-btn {
-    margin-right: 5px; }
+    cursor: pointer; }
+    .f-controls .f-btn img {
+      width: 100px;
+      height: 100px;
+      user-drag: none;
+      user-select: none;
+      -moz-user-select: none;
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+      -ms-user-select: none; }
+    .f-controls .f-btn .f-btn-image-on {
+      display: none; }
+    .f-controls .f-btn .f-btn-image-off {
+      display: block; }
+    .f-controls .f-btn--active .f-btn-image-on {
+      display: block; }
+    .f-controls .f-btn--active .f-btn-image-off {
+      display: none; }
+    .f-controls .f-btn:hover .f-btn-image-on {
+      display: block; }
+    .f-controls .f-btn:hover .f-btn-image-off {
+      display: none; }
 
 /*# sourceMappingURL=style.css.map */

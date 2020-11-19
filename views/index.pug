@@ -2,15 +2,26 @@ extends layout
 
 block content
   .f-container
-    canvas#f-canvas(width='500' height='500')
+    canvas#f-canvas(width='700' height='700')
 
     .f-controls
-      button.f-btn.f-btn-color(data-value='green') GREEN
-      button.f-btn.f-btn-color(data-value='blue') BLUE
-      button.f-btn.f-btn-color(data-value='black') BLACK
-      button.f-btn.f-btn-color(data-value='white') WHITE
-      button.f-btn.f-btn-size(data-value=1) 1x
-      button.f-btn.f-btn-size(data-value=2) 2x
-      button.f-btn.f-btn-size(data-value=3) 3x
+      .f-btn.f-btn-color.f-btn--active(data-value='black', data-type='color')
+        img.f-btn-image-off(src="images/webdraw-black.svg")
+        img.f-btn-image-on(src="images/webdraw-black-f.svg")
+      
+      each val in ["green", "blue", "white"]
+        .f-btn.f-btn-color(data-value=val, data-type='color')
+          img.f-btn-image-off(src="images/webdraw-" + val + ".svg")
+          img.f-btn-image-on(src="images/webdraw-" + val + "-f.svg")
+
+      .f-btn.f-btn-size(data-value=1, data-type='size')
+        img.f-btn-image-off(src="images/webdraw-1.svg")
+        img.f-btn-image-on(src="images/webdraw-1-f.svg")
+      .f-btn.f-btn-size.f-btn--active(data-value=2, data-type='size')
+        img.f-btn-image-off(src="images/webdraw-2.svg")
+        img.f-btn-image-on(src="images/webdraw-2-f.svg")
+      .f-btn.f-btn-size(data-value=3, data-type='size')
+        img.f-btn-image-off(src="images/webdraw-3.svg")
+        img.f-btn-image-on(src="images/webdraw-3-f.svg")
 
   script(src='/javascripts/base.js')

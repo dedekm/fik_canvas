@@ -24,12 +24,21 @@ do ->
     window.requestAnimationFrame render
     return
 
+  setButtonActive = (event) ->
+    $btn = $(event.target.parentNode)
+    type = $btn.data('type')
+    $(".f-btn--active[data-type='#{type}'").removeClass('f-btn--active')
+    $btn.addClass("f-btn--active")
+
+    return $btn
+
   setColor = (event) ->
-    socket.emit 'message', "hej"
-    tool.setColor event.target.dataset.value
+    $btn = setButtonActive(event)
+    tool.setColor $btn.data('value')
 
   setSize = (event) ->
-    tool.setSize event.target.dataset.value * 2
+    $btn = setButtonActive(event)
+    tool.setSize $btn.data('value') * 2
 
   mouseDown = (event) ->
     clicked = true
