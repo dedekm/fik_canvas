@@ -2,7 +2,7 @@ PaintTool = require './paint_tool.coffee'
 io = require 'socket.io/client-dist/socket.io.js'
 
 do ->
-  canvas = document.getElementById('fik-canvas')
+  canvas = document.getElementById('f-canvas')
   ctx = canvas.getContext('2d')
   clicked = false
   onCanvas = false
@@ -49,6 +49,18 @@ do ->
     if clicked
       positions.push mousePosition(evt)
 
+  getOffsetPosition = (el) ->
+    position =
+      top: el.offsetTop
+      left: el.offsetLeft
+
+    if el.offsetParent
+      parentPosition = getOffsetPosition(el.offsetParent)
+      position.top += parentPosition.top
+      position.left += parentPosition.left
+
+    position
+
   mousePosition = (e) ->
     e = e || window.event;
 
@@ -60,9 +72,11 @@ do ->
       pageX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
       pageY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
 
+    canvasPosition = getOffsetPosition(canvas)
+
     {
-      x: pageX,
-      y: pageY
+      x: pageX - canvasPosition.left,
+      y: pageY - canvasPosition.top
     }
 
   # document.getElementById('form').addEventListener 'submit', (event) ->

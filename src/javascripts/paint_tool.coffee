@@ -10,6 +10,7 @@ class PaintTool
     black: "#000000"
     blue: "#0000ff"
     green: "#00ff00"
+    white: "#ffffff"
 
   constructor: (canvas) ->
     @canvas = canvas
