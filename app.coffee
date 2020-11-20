@@ -1,3 +1,6 @@
+# dotenv
+require('dotenv').config()
+
 createError     = require('http-errors')
 express         = require('express')
 minify          = require('express-minify')
@@ -8,6 +11,8 @@ cookieParser    = require('cookie-parser')
 logger          = require('morgan')
 sassMiddleware  = require('node-sass-middleware')
 socket_io       = require('socket.io')
+date            = require('date-and-time')
+fs              = require('fs')
 
 # Express
 app = express()
@@ -18,7 +23,26 @@ Canvas = require('canvas').Canvas
 Paint = require('./src/javascripts/paint_tool.coffee')
 
 canvas = createCanvas(700, 700)
+canvas.dirty = false
 tool = new Paint(canvas)
+
+saveImage = ->
+  return unless canvas.dirty
+
+  console.log 'saving canvas...'
+  filename = date.format(new Date(), 'fik_YYYY-MM-DD_HH-mm-ss.png')
+  out = fs.createWriteStream("#{__dirname}/images/#{filename}")
+  stream = canvas.pngStream()
+
+  stream.on 'data', (chunk) ->
+    out.write chunk
+
+  stream.on 'end', ->
+    canvas.dirty = false
+    console.log "saved canvas to #{filename}"
+
+if process.env.SAVE_IMAGES_ENABLED
+  setInterval saveImage, (process.env.SAVE_IMAGES_INTERVAL || 60) * 1000
 
 # Socket.io
 app.io = socket_io()
@@ -33,6 +57,7 @@ app.io.on 'connection', (socket) ->
   socket.on 'draw', (req) ->
     tool.draw req.positions, req.color, req.size
     socket.broadcast.emit 'draw', req
+    canvas.dirty = true
 
 indexRouter = require('./routes/index')
 
