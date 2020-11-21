@@ -1,7 +1,7 @@
 PaintTool = require './paint_tool.coffee'
 io = require 'socket.io/client-dist/socket.io.js'
 
-do ->
+$ ->
   canvas = document.getElementById('f-canvas')
   ctx = canvas.getContext('2d')
   clicked = false
@@ -48,11 +48,8 @@ do ->
     clicked = false
     positions = []
 
-  mouseIn = (event) ->
-    onCanvas = true
-
-  mouseOut = (event) ->
-    onCanvas = false
+  mouseLeave = (event) ->
+    positions = []
 
   mouseMove = (evt) ->
     if clicked
@@ -88,31 +85,17 @@ do ->
       y: pageY - canvasPosition.top
     }
 
-  # document.getElementById('form').addEventListener 'submit', (event) ->
-    # event.preventDefault()
-    # name = document.getElementById('name').value
-    # if name
+  $(document).on 'mouseleave', 'body', mouseLeave
+  $(document).on 'mousedown', '#f-canvas', mouseDown
+  $(document).on 'mouseup', '#f-canvas', mouseUp
+  $(document).on 'mousemove', 'body', mouseMove
 
-  document.addEventListener 'mousedown', mouseDown
-  document.addEventListener 'mouseup', mouseUp
-  document.addEventListener 'mousemove', mouseMove
-
-  for btn in document.getElementsByClassName("f-btn-color")
-    btn.addEventListener('click', setColor)
-
-  for btn in document.getElementsByClassName("f-btn-size")
-    btn.addEventListener('click', setSize)
-
-  # document.getElementById('warning').innerHTML = ''
-    #   socket.emit 'newName', name
-    # else
-    #   document.getElementById('warning').innerHTML = 'name is required!!!'
-    #   socket.emit 'newName', ''
+  $(document).on 'click', '.f-btn-color', setColor
+  $(document).on 'click', '.f-btn-size', setSize
 
   window.requestAnimationFrame render
 
   # Socket.io
-
   socket = io()
 
   socket.on 'loadImage', (msg) ->
