@@ -9,7 +9,6 @@ coffeeify       = require('coffeeify')
 path            = require('path')
 cookieParser    = require('cookie-parser')
 logger          = require('morgan')
-sassMiddleware  = require('node-sass-middleware')
 socket_io       = require('socket.io')
 date            = require('date-and-time')
 fs              = require('fs')
@@ -86,12 +85,6 @@ app.use logger('dev')
 app.use express.json()
 app.use express.urlencoded(extended: false)
 app.use cookieParser()
-app.use sassMiddleware(
-  src: path.join(__dirname, 'src')
-  dest: path.join(__dirname, 'public')
-  indentedSyntax: true
-  sourceMap: true
-)
 
 browserify.settings('transform', coffeeify)
 app.get('/javascripts/base.js', browserify('./src/javascripts/base.coffee'))
