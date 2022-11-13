@@ -51,9 +51,10 @@ $ ->
   mouseLeave = (event) ->
     positions = []
 
-  mouseMove = (evt) ->
+  mouseMove = (event) ->
     if clicked
-      positions.push mousePosition(evt)
+      pos = mousePosition(event)
+      positions.push(pos)
 
   getOffsetPosition = (el) ->
     position =
@@ -68,10 +69,14 @@ $ ->
     position
 
   mousePosition = (e) ->
-    e = e || window.event;
+    e = e || window.event
 
-    pageX = e.pageX
-    pageY = e.pageY
+    if e.touches
+      pageX = e.touches[0].clientX
+      pageY = e.touches[0].clientY
+    else
+      pageX = e.pageX
+      pageY = e.pageY
 
     # IE 8
     unless pageX
@@ -81,14 +86,14 @@ $ ->
     canvasPosition = getOffsetPosition(canvas)
 
     {
-      x: pageX - canvasPosition.left,
-      y: pageY - canvasPosition.top
+      x: Math.round(pageX - canvasPosition.left),
+      y: Math.round(pageY - canvasPosition.top)
     }
 
   $(document).on 'mouseleave', 'body', mouseLeave
-  $(document).on 'mousedown', '#f-canvas', mouseDown
-  $(document).on 'mouseup', '#f-canvas', mouseUp
-  $(document).on 'mousemove', 'body', mouseMove
+  $(document).on 'mousedown touchstart', '#f-canvas', mouseDown
+  $(document).on 'mouseup touchend contextmenu', mouseUp
+  $(document).on 'mousemove touchmove', 'body', mouseMove
 
   $(document).on 'click', '.f-btn-color', setColor
   $(document).on 'click', '.f-btn-size', setSize
