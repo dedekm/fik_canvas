@@ -8,8 +8,8 @@ class PaintTool
 
   ALLOWED_COLORS =
     black: "#000000"
-    blue: "#0000ff"
-    green: "#00ff00"
+    green: "#0affcd"
+    gray: "#bbbdbf"
     white: "#ffffff"
 
   ALLOWED_SIZES = [ 2, 4, 8 ]

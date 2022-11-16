@@ -20,26 +20,30 @@ app = express()
 Canvas = require('canvas')
 Paint = require('./src/javascripts/paint_tool.coffee')
 
-canvas = Canvas.createCanvas(700, 700)
-canvas.dirty = false
-
 # check saved images
 dir = './images'
 images = fs.readdirSync(dir)
            .filter((file) ->
-             fs.lstatSync(path.join(dir, file)).isFile()
+             file.match(/.*\.png/) && fs.lstatSync(path.join(dir, file)).isFile()
            ).map((file) ->
              file: file
              mtime: fs.lstatSync(path.join(dir, file)).mtime
            ).sort (a, b) ->
              b.mtime.getTime() - a.mtime.getTime()
 
+canvas = Canvas.createCanvas(700, 700)
+canvas.dirty = false
+ctx = canvas.getContext('2d')
+
 # load last saved image to canvas
 if images[0]
   img = new Canvas.Image
   img.onload = ->
-    canvas.getContext('2d').drawImage img, 0, 0
+    ctx.drawImage img, 0, 0
   img.src = "#{dir}/#{images[0].file}"
+else
+  ctx.fillStyle = "#ffffff"
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 tool = new Paint(canvas)
 

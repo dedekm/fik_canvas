@@ -2,28 +2,28 @@ extends layout
 
 block content
   .f-container
-    img.f-header(src='images/webdraw_header.svg')
+    img.f-header(src='images/header.svg')
       
     canvas#f-canvas(width='700' height='700')
 
     .f-controls
       .f-btn.f-btn-color.f-btn--active(data-value='black', data-type='color')
-        img.f-btn-image-off(src="images/webdraw-black.svg")
-        img.f-btn-image-on(src="images/webdraw-black-f.svg")
+        img.f-btn-image-off(src="images/btn_black.svg")
+        img.f-btn-image-on(src="images/btn_black_on.svg")
       
-      each val in ["green", "blue", "white"]
+      each val in ["green", "gray", "white"]
         .f-btn.f-btn-color(data-value=val, data-type='color')
-          img.f-btn-image-off(src="images/webdraw-" + val + ".svg")
-          img.f-btn-image-on(src="images/webdraw-" + val + "-f.svg")
+          img.f-btn-image-off(src="images/btn_" + val + ".svg")
+          img.f-btn-image-on(src="images/btn_" + val + "_on.svg")
 
       .f-btn.f-btn-size(data-value=2, data-type='size')
-        img.f-btn-image-off(src="images/webdraw-1.svg")
-        img.f-btn-image-on(src="images/webdraw-1-f.svg")
+        img.f-btn-image-off(src="images/btn_1.svg")
+        img.f-btn-image-on(src="images/btn_1_on.svg")
       .f-btn.f-btn-size.f-btn--active(data-value=4, data-type='size')
-        img.f-btn-image-off(src="images/webdraw-2.svg")
-        img.f-btn-image-on(src="images/webdraw-2-f.svg")
+        img.f-btn-image-off(src="images/btn_2.svg")
+        img.f-btn-image-on(src="images/btn_2_on.svg")
       .f-btn.f-btn-size(data-value=8, data-type='size')
-        img.f-btn-image-off(src="images/webdraw-3.svg")
-        img.f-btn-image-on(src="images/webdraw-3-f.svg")
+        img.f-btn-image-off(src="images/btn_3.svg")
+        img.f-btn-image-on(src="images/btn_3_on.svg")
 
   script(src='/javascripts/base.js')
