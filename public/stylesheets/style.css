@@ -21,6 +21,13 @@ img {
   width: 700px;
 }
 
+.f-qrcode {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 10px;
+}
+
 .f-header {
   margin-top: 10px;
   margin-bottom: 5px;
