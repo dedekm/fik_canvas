@@ -28,7 +28,7 @@ const images = fs.readdirSync(dir)
                    return b.mtime.getTime() - a.mtime.getTime();
                  });
 
-const canvas = Canvas.createCanvas(750, 750);
+const canvas = Canvas.createCanvas(700, 700);
 canvas.dirty = false;
 
 const ctx = canvas.getContext('2d');
