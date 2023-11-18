@@ -4,27 +4,32 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "NODE_ENV=development DEBUG=fik-canvas:* nodemon ./bin/www -e coffee & npm run scss",
-    "scss": "sass --watch src/stylesheets/style.sass public/stylesheets/style.css"
+    "dev": " run-p sass watchify nodemon",
+    "nodemon": "NODE_ENV=development DEBUG=fik-canvas:* nodemon ./bin/www",
+    "sass": "sass --watch src/stylesheets/style.sass public/stylesheets/style.css",
+    "watchify": "watchify src/javascripts/base.js -o public/javascripts/application.js"
   },
   "dependencies": {
-    "browserify-middleware": "^8.1.1",
-    "canvas": "^2.8.0",
-    "coffeeify": "^3.0.1",
-    "coffeescript": "^2.4.1",
+    "browserify": "^17.0.0",
+    "canvas": "^2.11",
     "cookie-parser": "^1.4.4",
     "date-and-time": "^0.14.2",
     "debug": "~2.6.9",
     "dotenv": "^8.2.0",
-    "express": "^4.16.4",
+    "express": "^4.18",
     "express-minify": "^1.0.0",
     "fs": "0.0.1-security",
     "http-errors": "~1.6.2",
     "morgan": "^1.9.1",
     "pug": "^3.0.2",
-    "socket.io": "^3.0.1"
+    "socket.io": "^4.7"
   },
   "devDependencies": {
-    "nodemon": "^2.0.14"
+    "nodemon": "^3.0",
+    "npm-run-all": "^4.1.5",
+    "watchify": "^4.0.0"
+  },
+  "nodemonConfig": {
+    "ignore": ["public/*"]
   }
 }

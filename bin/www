@@ -3,8 +3,7 @@
 /**
  * Module dependencies.
  */
-require('coffeescript/register')
-var app = require('../app.coffee');
+var app = require('../app.js');
 var debug = require('debug')('fik-canvas:server');
 var http = require('http');
 
