@@ -1,18 +1,48 @@
-var drawPixels = function(ctx, x, y, size) {
+function drawPixels(ctx, x, y, size) {
   return ctx.fillRect(roundToPixel(x, size) - (size / 2),
                       roundToPixel(y, size) - (size / 2),
                       size,
                       size);
-};
+}
 
-var roundToPixel = function(n, size) {
+function roundToPixel(n, size) {
   return Math.floor(n / size) * size;
-};
+}
+
+function hexToRgb(hex) {
+  return {
+    r: parseInt(hex.slice(1, 3), 16),
+    g: parseInt(hex.slice(3, 5), 16),
+    b: parseInt(hex.slice(5, 7), 16)
+  };
+}
+
+function rgbToHex(rgb) {
+  return (
+    "#" +
+    ((1 << 24) + (rgb.r << 16) + (rgb.g << 8) + rgb.b)
+      .toString(16)
+      .slice(1)
+  );
+}
+
+function interpolateColor(color1, color2, factor) {
+  const rgb1 = hexToRgb(color1);
+  const rgb2 = hexToRgb(color2);
+
+  const interpolatedColor = {
+    r: Math.round(rgb1.r + factor * (rgb2.r - rgb1.r)),
+    g: Math.round(rgb1.g + factor * (rgb2.g - rgb1.g)),
+    b: Math.round(rgb1.b + factor * (rgb2.b - rgb1.b))
+  };
+
+  return rgbToHex(interpolatedColor);
+}
 
 const ALLOWED_COLORS = {
   black: "#000000",
   green: "#0affcd",
-  gray: "#bbbdbf",
+  gradient: ["#34449d", "#a4e0f2", "#ead188", "#e48f2e"],
   white: "#ffffff"
 };
 
@@ -24,6 +54,16 @@ class PaintTool {
     this.ctx = this.canvas.getContext('2d');
     this.size = 4;
     this.color = 'black';
+
+    if (ALLOWED_COLORS['gradient']) {
+      this.gradient = {
+        colors: ALLOWED_COLORS['gradient'],
+        index: Math.floor(Math.random() * (ALLOWED_COLORS['gradient'].length - 1)),
+        position: Math.floor(Math.random()* 10) / 10,
+        direction: 1,
+        speed: 0.05,
+      };
+    }
   }
 
   setColor(color) {
@@ -39,6 +79,27 @@ class PaintTool {
 
   hexColor(color) {
     return ALLOWED_COLORS[color];
+  }
+
+  gradientHexColor() {
+    const from = this.gradient.colors[this.gradient.index];
+    const to = this.gradient.colors[this.gradient.index + this.gradient.direction];
+    return interpolateColor(from, to, this.gradient.position);
+  }
+
+  updateGradient() {
+    this.gradient.position += this.gradient.speed;
+
+    if (this.gradient.position >= 1) {
+      this.gradient.position = 0;
+      this.gradient.index += this.gradient.direction;
+    }
+
+    if (this.gradient.index == (this.gradient.colors.length - 1) && this.gradient.direction == 1) {
+      this.gradient.direction = -1
+    } else if (this.gradient.index == 0 && this.gradient.direction == -1) {
+      this.gradient.direction = 1
+    }
   }
 
   bline(x0, y0, x1, y1, size) {
@@ -59,8 +120,12 @@ class PaintTool {
   }
 
   draw(positions, color, size) {
-    this.ctx.fillStyle = this.hexColor(this.color || color);
+    color = color || this.color;
     size = size || this.size;
+
+    if (color != 'gradient') {
+      this.ctx.fillStyle = this.hexColor(color);
+    }
 
     const start = positions[0];
 
@@ -71,9 +136,15 @@ class PaintTool {
     for (let i = 1; i < positions.length; i++) {
       const previous = positions[i - 1];
       const current = positions[i];
+
+      if (color == 'gradient') {
+        this.updateGradient()
+        this.ctx.fillStyle = this.gradientHexColor()
+      }
+
       this.bline(previous.x, previous.y, current.x, current.y, size);
     }
   }
 }
 
-  module.exports = PaintTool;
+module.exports = PaintTool;
