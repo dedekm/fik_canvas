@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": " run-p sass watchify nodemon",
+    "dev": "run-p sass watchify nodemon",
     "nodemon": "NODE_ENV=development DEBUG=fik-canvas:* nodemon ./bin/www",
     "sass": "sass --watch src/stylesheets/style.sass public/stylesheets/style.css",
-    "watchify": "watchify src/javascripts/base.js -o public/javascripts/application.js"
+    "watchify": "watchify src/javascripts/base.js -o public/javascripts/application.js",
+    "compile": "browserify src/javascripts/base.js -o public/javascripts/application.js"
   },
   "dependencies": {
     "browserify": "^17.0.0",

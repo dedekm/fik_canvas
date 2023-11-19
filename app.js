@@ -79,7 +79,7 @@ app.io.on('connection', (socket) => {
   socket.emit('loadImage', canvas.toDataURL());
 
   socket.on('draw', (req) => {
-    tool.draw(req.positions, req.color, req.size);
+    tool.draw(req.positions, req.size, req.colors);
     socket.broadcast.emit('draw', req);
     canvas.dirty = true;
   });

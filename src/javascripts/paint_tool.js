@@ -1,8 +1,8 @@
 function drawPixels(ctx, x, y, size) {
-  return ctx.fillRect(roundToPixel(x, size) - (size / 2),
-                      roundToPixel(y, size) - (size / 2),
-                      size,
-                      size);
+  ctx.fillRect(roundToPixel(x, size) - (size / 2),
+               roundToPixel(y, size) - (size / 2),
+               size,
+               size);
 }
 
 function roundToPixel(n, size) {
@@ -49,19 +49,21 @@ const ALLOWED_COLORS = {
 const ALLOWED_SIZES = [2, 4, 8];
 
 class PaintTool {
-  constructor(canvas) {
+  constructor(canvas, client = true) {
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
     this.size = 4;
     this.color = 'black';
 
-    if (ALLOWED_COLORS['gradient']) {
+    this.client = client;
+
+    if (this.client && ALLOWED_COLORS['gradient']) {
       this.gradient = {
         colors: ALLOWED_COLORS['gradient'],
         index: Math.floor(Math.random() * (ALLOWED_COLORS['gradient'].length - 1)),
         position: Math.floor(Math.random()* 10) / 10,
         direction: 1,
-        speed: 0.05,
+        speed: 0.025,
       };
     }
   }
@@ -82,6 +84,8 @@ class PaintTool {
   }
 
   gradientHexColor() {
+    this.updateGradient()
+
     const from = this.gradient.colors[this.gradient.index];
     const to = this.gradient.colors[this.gradient.index + this.gradient.direction];
     return interpolateColor(from, to, this.gradient.position);
@@ -119,31 +123,50 @@ class PaintTool {
     }
   }
 
-  draw(positions, color, size) {
-    color = color || this.color;
+  draw(positions, size, colors) {
     size = size || this.size;
 
-    if (color != 'gradient') {
-      this.ctx.fillStyle = this.hexColor(color);
+    if (!colors) {
+      let hexColor;
+
+      if (this.color == 'gradient') {
+        hexColor = this.gradientHexColor();
+      } else {
+        hexColor = this.hexColor(this.color);
+      }
+
+      this.ctx.fillStyle = hexColor
+    } else {
+      this.ctx.fillStyle = colors[0]
     }
 
+    const outputColors = [];
     const start = positions[0];
 
     drawPixels(this.ctx, start.x, start.y, size);
+    outputColors.push(this.ctx.fillStyle);
 
-    if (positions.length === 1) { return; }
+    if (positions.length > 1) {
+      for (let i = 1; i < positions.length; i++) {
+        const previous = positions[i - 1];
+        const current = positions[i];
 
-    for (let i = 1; i < positions.length; i++) {
-      const previous = positions[i - 1];
-      const current = positions[i];
+        if (colors) {
+          this.ctx.fillStyle = colors[i];
+        } else if (this.color == 'gradient') {
+          this.ctx.fillStyle = this.gradientHexColor();
+        }
 
-      if (color == 'gradient') {
-        this.updateGradient()
-        this.ctx.fillStyle = this.gradientHexColor()
+        this.bline(previous.x, previous.y, current.x, current.y, size);
+        outputColors.push(this.ctx.fillStyle);
       }
-
-      this.bline(previous.x, previous.y, current.x, current.y, size);
     }
+
+    return {
+      colors: outputColors,
+      positions: positions,
+      size: size,
+    };
   }
 }
 

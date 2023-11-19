@@ -12,12 +12,12 @@ $(function() {
 
   function render() {
     if (positions.length > 0) {
-      tool.draw(positions);
+      const data = tool.draw(positions);
 
       socket.emit('draw', {
-        positions: positions,
-        color: tool.color,
-        size: tool.size
+        positions: data.positions,
+        colors: data.colors,
+        size: data.size
       });
 
       positions = [positions[positions.length - 1]];
@@ -129,6 +129,6 @@ $(function() {
   });
 
   socket.on('draw', (msg) => {
-    tool.draw(msg.positions, msg.color, msg.size);
+    tool.draw(msg.positions, msg.size, msg.colors);
   });
 });

@@ -7,6 +7,9 @@
 /node_modules
 /npm-debug.log
 
+/public/javascripts/*
+!/public/javascripts/.keep
+
 /images/*
 !/images/.keep
 .env
