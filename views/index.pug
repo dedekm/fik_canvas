@@ -4,15 +4,15 @@ block content
   .f-bg
   .f-container
     img.f-header(src='images/header.svg')
-      
+
     canvas#f-canvas(width='700' height='700')
 
     .f-controls
       .f-btn.f-btn-color.f-btn--active(data-value='black', data-type='color')
         img.f-btn-image-off(src="images/btn_black.svg")
         img.f-btn-image-on(src="images/btn_black_on.svg")
-      
-      each val in ["blue", "gradient", "white"]
+
+      each val in ["green", "gold", "pink"]
         .f-btn.f-btn-color(data-value=val, data-type='color')
           img.f-btn-image-off(src="images/btn_" + val + ".svg")
           img.f-btn-image-on(src="images/btn_" + val + "_on.svg")
@@ -26,7 +26,7 @@ block content
       .f-btn.f-btn-size(data-value=8, data-type='size')
         img.f-btn-image-off(src="images/btn_3.svg")
         img.f-btn-image-on(src="images/btn_3_on.svg")
-    
+
     if projection
       img.f-qrcode(src='images/qrcode.svg')
 

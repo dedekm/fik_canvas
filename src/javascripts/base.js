@@ -123,6 +123,7 @@ $(function() {
 
     imageObj.onload = function() {
       ctx.drawImage(this, 0, 0);
+      animatePixels();
     };
 
     imageObj.src = msg;
@@ -131,4 +132,77 @@ $(function() {
   socket.on('draw', (msg) => {
     tool.draw(msg.positions, msg.size, msg.colors);
   });
+
+  const goldColor = { r: 255, g: 215, b: 0 };
+
+  function animatePixels() {
+    const gradientValue = 0.2;
+    const gradientSpacing = 20;
+    const gapSizeMultiplier = 1;
+
+    let gradientPosition = 0;
+
+    function checkForGold(r, g, b) {
+      return Math.abs(r - goldColor.r) < 150 &&
+             Math.abs(g - goldColor.g) < 150 &&
+             Math.abs(b - goldColor.b) < 150
+    }
+
+    function adjustBrightness(brightness) {
+      let c = null;
+      if (brightness > 1.1) {
+        c = {
+          r: Math.min(255, goldColor.r * brightness),
+          g: Math.min(255, goldColor.g * brightness),
+          b: 149,
+        };
+      } else {
+        c = {
+          r: Math.min(255, goldColor.r * brightness),
+          g: Math.min(255, goldColor.g * brightness),
+          b: Math.min(255, goldColor.b * brightness),
+        };
+      }
+
+      return c;
+    }
+
+    function updateFrame() {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      const width = imageData.width;
+
+      for (let y = 0; y < imageData.height; y += 2) {
+        for (let x = 0; x < imageData.width; x += 2) {
+          const offset = (y * width + x) * 4;
+          const r = data[offset];
+          const g = data[offset + 1];
+          const b = data[offset + 2];
+
+          const diagonalPosition = (Math.floor(x / 2) + Math.floor(y / 2) + gradientPosition) / gradientSpacing;
+          const gradientFactor = 1.0 + Math.max(0, gradientValue * Math.sin(diagonalPosition * gapSizeMultiplier));
+
+          if (checkForGold(r, g, b)) {
+            for (let dy = 0; dy < 2; dy++) {
+              for (let dx = 0; dx < 2; dx++) {
+                  const blockOffset = ((y + dy) * width + (x + dx)) * 4;
+                  const updated = adjustBrightness(gradientFactor);
+                  data[blockOffset] = updated.r;
+                  data[blockOffset + 1] = updated.g;
+                  data[blockOffset + 2] = updated.b;
+              }
+            }
+          }
+        }
+      }
+
+      gradientPosition += 3;
+
+      ctx.putImageData(imageData, 0, 0);
+
+      setTimeout(updateFrame, 1000 / 15);
+    }
+
+    updateFrame();
+  }
 });

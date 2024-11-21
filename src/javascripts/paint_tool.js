@@ -41,9 +41,10 @@ function interpolateColor(color1, color2, factor) {
 
 const ALLOWED_COLORS = {
   black: "#000000",
-  blue: "#34449d",
-  gradient: ["#a4e0f2", "#ead188", "#e48f2e"],
-  white: "#ffffff"
+  green: "#076059",
+  // gradient: ["#a4e0f2", "#ead188", "#e48f2e"],
+  gold: "#ffd700",
+  pink: "#ffc2fc"
 };
 
 const ALLOWED_SIZES = [2, 4, 8];
