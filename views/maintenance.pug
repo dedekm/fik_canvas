@@ -1,9 +1,10 @@
 extends layout
 
 block content
+  .f-bg
   .f-container.f-maintenance
     img.f-header(src='images/header.svg')
-    
-    p ♾️ under maintenance. back soon ♾️
+
+    p #{process.env.MAINTENANCE_MESSAGE || "under maintenance. back soon"}
 
   script(src='/javascripts/base.js')
