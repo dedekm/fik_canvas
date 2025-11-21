@@ -13,9 +13,38 @@ $(function() {
   let vectorColor = null;
   let savedCanvasState = null;
   let currentMousePos = null;
+  let otherPlayersPreviews = {}; // Store previews from other players by socketId
+
+  function drawAllPreviews() {
+    // Draw other players' previews first (in consistent order)
+    const socketIds = Object.keys(otherPlayersPreviews).sort();
+    for (const socketId of socketIds) {
+      const preview = otherPlayersPreviews[socketId];
+      tool.ctx.fillStyle = preview.color;
+      tool.drawPixelatedCircle(preview.start.x, preview.start.y, preview.size);
+      tool.bline(preview.start.x, preview.start.y, preview.end.x, preview.end.y, preview.size);
+      tool.drawPixelatedCircle(preview.end.x, preview.end.y, preview.size);
+    }
+
+    // Draw our own preview on top (so we always see our own)
+    if (vectorStartPoint !== null && currentMousePos !== null && vectorColor !== null) {
+      tool.ctx.fillStyle = vectorColor;
+      tool.drawPixelatedCircle(vectorStartPoint.x, vectorStartPoint.y, tool.size);
+      tool.bline(vectorStartPoint.x, vectorStartPoint.y, currentMousePos.x, currentMousePos.y, tool.size);
+      tool.drawPixelatedCircle(currentMousePos.x, currentMousePos.y, tool.size);
+    }
+  }
 
   function render() {
     if (positions.length > 0 && tool.color !== 'vector') {
+      const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+      
+      // If other players have previews, we need to draw on clean canvas
+      if (hasOtherPreviews && savedCanvasState !== null) {
+        // Restore clean canvas (remove previews)
+        ctx.putImageData(savedCanvasState, 0, 0);
+      }
+      
       const data = tool.draw(positions);
 
       socket.emit('draw', {
@@ -23,6 +52,13 @@ $(function() {
         colors: data.colors,
         size: data.size
       });
+
+      // Update saved state with our new drawing
+      if (hasOtherPreviews) {
+        savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // Redraw all previews on top
+        drawAllPreviews();
+      }
 
       positions = [positions[positions.length - 1]];
     }
@@ -46,13 +82,31 @@ $(function() {
 
     if (tool.color === 'vector' && newColor !== 'vector') {
       // Restore canvas if we were drawing a vector preview
-      if (savedCanvasState !== null) {
+      if (savedCanvasState !== null && vectorStartPoint !== null) {
         ctx.putImageData(savedCanvasState, 0, 0);
+        
+        // Clear our preview for other players
+        socket.emit('vectorPreviewClear');
+        
+        vectorStartPoint = null;
+        vectorColor = null;
+        currentMousePos = null;
+        
+        // Check if there are still other players' previews
+        const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+        if (hasOtherPreviews) {
+          // Keep saved state and draw other previews
+          savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          drawAllPreviews();
+        } else {
+          // No other previews, clear saved state
+          savedCanvasState = null;
+        }
+      } else {
+        vectorStartPoint = null;
+        vectorColor = null;
+        currentMousePos = null;
       }
-      vectorStartPoint = null;
-      vectorColor = null;
-      savedCanvasState = null;
-      currentMousePos = null;
     }
 
     tool.setColor(newColor);
@@ -76,8 +130,16 @@ $(function() {
         ? vectorColorArray[Math.floor(Math.random() * vectorColorArray.length)]
         : vectorColorArray;
 
-      // Save the current canvas state before drawing preview
-      savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // If there are other players' previews, we need to get clean canvas state first
+      const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+      if (hasOtherPreviews && savedCanvasState !== null) {
+        // Restore to clean state first, then save it
+        ctx.putImageData(savedCanvasState, 0, 0);
+        savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      } else {
+        // Save the current canvas state before drawing preview
+        savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      }
 
       tool.ctx.fillStyle = vectorColor;
       tool.drawPixelatedCircle(pos.x, pos.y, tool.size);
@@ -92,7 +154,7 @@ $(function() {
       // End of vector drag - restore canvas and draw the final line
       const endPos = mousePosition(event);
       
-      // Restore canvas to remove preview
+      // Restore canvas to remove all previews
       if (savedCanvasState !== null) {
         ctx.putImageData(savedCanvasState, 0, 0);
       }
@@ -106,11 +168,24 @@ $(function() {
         isVector: true
       });
 
+      // Clear our preview for other players
+      socket.emit('vectorPreviewClear');
+
       // Reset for next line
       vectorStartPoint = null;
       vectorColor = null;
-      savedCanvasState = null;
       currentMousePos = null;
+
+      // Check if there are still other players' previews
+      const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+      if (hasOtherPreviews) {
+        // Save the clean state with our drawn vector, then draw other previews
+        savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        drawAllPreviews();
+      } else {
+        // No other previews, clear saved state
+        savedCanvasState = null;
+      }
     }
 
     clicked = false;
@@ -119,15 +194,28 @@ $(function() {
 
   function mouseLeave(event) {
     // Restore canvas if we were drawing a vector preview
-    if (tool.color === 'vector' && savedCanvasState !== null) {
+    if (tool.color === 'vector' && savedCanvasState !== null && vectorStartPoint !== null) {
       ctx.putImageData(savedCanvasState, 0, 0);
+      
+      // Clear our preview for other players
+      socket.emit('vectorPreviewClear');
+      
+      vectorStartPoint = null;
+      vectorColor = null;
+      currentMousePos = null;
+      
+      // Check if there are still other players' previews
+      const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+      if (hasOtherPreviews) {
+        // Keep saved state and draw other previews
+        drawAllPreviews();
+      } else {
+        // No other previews, clear saved state
+        savedCanvasState = null;
+      }
     }
     
     positions = [];
-    vectorStartPoint = null;
-    vectorColor = null;
-    savedCanvasState = null;
-    currentMousePos = null;
   }
 
   function mouseMove(event) {
@@ -136,12 +224,17 @@ $(function() {
       currentMousePos = pos;
       
       if (tool.color === 'vector' && vectorStartPoint !== null && savedCanvasState !== null) {
-        // Restore canvas to state before preview, then draw new preview
+        // Restore canvas to state before preview, then draw all previews
         ctx.putImageData(savedCanvasState, 0, 0);
-        tool.ctx.fillStyle = vectorColor;
-        tool.drawPixelatedCircle(vectorStartPoint.x, vectorStartPoint.y, tool.size);
-        tool.bline(vectorStartPoint.x, vectorStartPoint.y, pos.x, pos.y, tool.size);
-        tool.drawPixelatedCircle(pos.x, pos.y, tool.size);
+        drawAllPreviews();
+
+        // Emit preview update to other players
+        socket.emit('vectorPreview', {
+          start: vectorStartPoint,
+          end: pos,
+          color: vectorColor,
+          size: tool.size
+        });
       } else {
         positions.push(pos);
       }
@@ -203,7 +296,23 @@ $(function() {
     const imageObj = new Image;
 
     imageObj.onload = function() {
+      const hasOwnPreview = vectorStartPoint !== null;
+      const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+      
+      // If we have any previews, restore first
+      if (savedCanvasState !== null && (hasOwnPreview || hasOtherPreviews)) {
+        ctx.putImageData(savedCanvasState, 0, 0);
+      }
+      
       ctx.drawImage(this, 0, 0);
+      
+      // Update saved canvas state if we have any previews
+      if (hasOwnPreview || hasOtherPreviews) {
+        savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        // Redraw all previews on top
+        drawAllPreviews();
+      }
+      
       // animatePixels();
     };
 
@@ -211,7 +320,79 @@ $(function() {
   });
 
   socket.on('draw', (msg) => {
-    tool.draw(msg.positions, msg.size, msg.colors, msg.isVector);
+    const hasOwnPreview = vectorStartPoint !== null;
+    const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+    
+    // If we have any previews (ours or others'), we need to be careful
+    if (savedCanvasState !== null && (hasOwnPreview || hasOtherPreviews)) {
+      // 1. Restore canvas to remove all previews
+      ctx.putImageData(savedCanvasState, 0, 0);
+      
+      // 2. Draw the incoming data from other player
+      tool.draw(msg.positions, msg.size, msg.colors, msg.isVector);
+      
+      // 3. Save the clean state (with other player's drawing, but without any previews)
+      savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      
+      // 4. Redraw all previews (ours + other players') on top
+      drawAllPreviews();
+    } else {
+      // Not in vector preview mode, just draw normally
+      tool.draw(msg.positions, msg.size, msg.colors, msg.isVector);
+    }
+  });
+
+  socket.on('vectorPreview', (msg) => {
+    // Store or update the preview from another player
+    const wasFirstPreview = Object.keys(otherPlayersPreviews).length === 0;
+    
+    otherPlayersPreviews[msg.socketId] = {
+      start: msg.start,
+      end: msg.end,
+      color: msg.color,
+      size: msg.size
+    };
+
+    if (savedCanvasState !== null) {
+      // We already have a saved state, restore and redraw all previews
+      ctx.putImageData(savedCanvasState, 0, 0);
+      drawAllPreviews();
+    } else if (wasFirstPreview) {
+      // First preview from any player - save clean canvas state first
+      savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // Don't restore, just draw the preview on top for the first time
+      drawAllPreviews();
+    } else {
+      // Should not happen, but handle it
+      if (savedCanvasState === null) {
+        savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      }
+      ctx.putImageData(savedCanvasState, 0, 0);
+      drawAllPreviews();
+    }
+  });
+
+  socket.on('vectorPreviewClear', (msg) => {
+    // Remove the preview from the specified player
+    if (msg.socketId && otherPlayersPreviews[msg.socketId]) {
+      delete otherPlayersPreviews[msg.socketId];
+
+      // Check if we have any previews left
+      const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+      const hasOwnPreview = vectorStartPoint !== null;
+
+      if (savedCanvasState !== null) {
+        ctx.putImageData(savedCanvasState, 0, 0);
+        
+        if (hasOtherPreviews || hasOwnPreview) {
+          // Still have previews to draw
+          drawAllPreviews();
+        } else {
+          // No more previews, clear the saved state
+          savedCanvasState = null;
+        }
+      }
+    }
   });
 
   const goldColor = { r: 255, g: 215, b: 0 };

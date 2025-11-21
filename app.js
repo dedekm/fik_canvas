@@ -83,6 +83,32 @@ app.io.on('connection', (socket) => {
     socket.broadcast.emit('draw', req);
     canvas.dirty = true;
   });
+
+  socket.on('vectorPreview', (req) => {
+    // Broadcast vector preview to all other clients, including the sender's socket ID
+    socket.broadcast.emit('vectorPreview', {
+      socketId: socket.id,
+      start: req.start,
+      end: req.end,
+      color: req.color,
+      size: req.size
+    });
+  });
+
+  socket.on('vectorPreviewClear', () => {
+    // Broadcast clear event with the sender's socket ID
+    socket.broadcast.emit('vectorPreviewClear', {
+      socketId: socket.id
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log("user " + socket.id + " disconnected");
+    // Clear any preview from disconnected user
+    socket.broadcast.emit('vectorPreviewClear', {
+      socketId: socket.id
+    });
+  });
 });
 
 const indexRouter = require('./routes/index');
