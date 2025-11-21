@@ -1,1 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500" xml:space="preserve"><path style="fill:#edc4dd" d="M0 2.8h500v496.5H0z"/><path d="M-34.3-31.3h568.7v564.7H-34.3z"/><path style="fill:none" d="M-3.9 113.9h498v303h-498z"/><g style="enable-background:new"><path d="M271.2 155.9v192.8c0 9-5.5 14.5-14.5 14.5s-14.5-5.5-14.5-14.5V253c0-3.5-2.3-5.8-5.8-5.8h-2.9c-9 0-14.5-5.5-14.5-14.5v-76.8c0-16 10.1-26.1 26.1-26.1s26.1 10.2 26.1 26.1z" style="fill:#fff"/></g></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #e6e7e9;
+      }
+
+      .cls-2 {
+        fill: #231f20;
+        stroke: #231f20;
+        stroke-miterlimit: 10;
+        stroke-width: 130px;
+      }
+    </style>
+  </defs>
+  <rect class="cls-2" x="-1.08" y="-2.16" width="502.16" height="502.16"/>
+  <path class="cls-1" d="M121.21,329.03h105.82v-120.99h-92.87v-42.18h32.93c40.7,0,66.23-20.35,66.23-56.98h43.66v220.15h106.19v46.99H121.21v-46.99Z"/>
+</svg>
