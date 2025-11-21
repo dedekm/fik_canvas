@@ -43,7 +43,8 @@ const ALLOWED_COLORS = {
   black: "#000000",
   green: "#0affcdff",
   // gradient: ["#a4e0f2", "#ead188", "#e48f2e"],
-  gold: "#ffd700",
+  // gold: "#ffd700",
+  vector: ["#79b8ffff", "#8400fdff", "#c4af2fff", "#2a82faff"],
   red: "#fe0900ff"
 };
 
@@ -124,7 +125,52 @@ class PaintTool {
     }
   }
 
-  draw(positions, size, colors) {
+  drawPixelatedCircle(centerX, centerY, size) {
+    const snappedCenterX = roundToPixel(centerX, size);
+    const snappedCenterY = roundToPixel(centerY, size);
+    const radiusInPixels = 2;
+    
+    for (let dy = -radiusInPixels; dy <= radiusInPixels; dy++) {
+      for (let dx = -radiusInPixels; dx <= radiusInPixels; dx++) {
+        const euclideanDistance = Math.sqrt(dx * dx + dy * dy);
+        if (euclideanDistance <= radiusInPixels + 0.5) {
+          const x = snappedCenterX + dx * size;
+          const y = snappedCenterY + dy * size;
+          this.ctx.fillRect(x - size / 2, y - size / 2, size, size);
+        }
+      }
+    }
+  }
+
+  drawVector(start, end, size, color) {
+    size = size || this.size;
+
+    let hexColor;
+    if (color) {
+      hexColor = color;
+    } else {
+      const colorValue = ALLOWED_COLORS[this.color];
+      if (Array.isArray(colorValue)) {
+        hexColor = colorValue[Math.floor(Math.random() * colorValue.length)];
+      } else {
+        hexColor = colorValue;
+      }
+    }
+
+    this.ctx.fillStyle = hexColor;
+    this.bline(start.x, start.y, end.x, end.y, size);
+    this.drawPixelatedCircle(start.x, start.y, size);
+    this.drawPixelatedCircle(end.x, end.y, size);
+
+    return {
+      colors: [hexColor],
+      positions: [start, end],
+      size: size,
+      isVector: true
+    };
+  }
+
+  draw(positions, size, colors, isVector) {
     size = size || this.size;
 
     if (!colors) {
@@ -142,10 +188,6 @@ class PaintTool {
     }
 
     const outputColors = [];
-    const start = positions[0];
-
-    drawPixels(this.ctx, start.x, start.y, size);
-    outputColors.push(this.ctx.fillStyle);
 
     if (positions.length > 1) {
       for (let i = 1; i < positions.length; i++) {
@@ -161,6 +203,12 @@ class PaintTool {
         this.bline(previous.x, previous.y, current.x, current.y, size);
         outputColors.push(this.ctx.fillStyle);
       }
+    }
+
+    // draw dots at both ends for vector lines
+    if (isVector && positions.length === 2) {
+      this.drawPixelatedCircle(positions[0].x, positions[0].y, size);
+      this.drawPixelatedCircle(positions[1].x, positions[1].y, size);
     }
 
     return {

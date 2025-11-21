@@ -9,9 +9,11 @@ $(function() {
   let clicked = false;
   let onCanvas = false;
   let positions = [];
+  let vectorFirstPoint = null;
+  let vectorColor = null;
 
   function render() {
-    if (positions.length > 0) {
+    if (positions.length > 0 && tool.color !== 'vector') {
       const data = tool.draw(positions);
 
       socket.emit('draw', {
@@ -30,15 +32,22 @@ $(function() {
     const $btn = $(event.target.parentNode);
     const type = $btn.data('type');
 
-    $(".f-btn--active[data-type='" + type + "'").removeClass('f-btn--active');
-    $btn.addClass("f-btn--active");
+    $(`.f-btn--active[data-type='${type}']`).removeClass('f-btn--active');
+    $btn.addClass('f-btn--active');
 
     return $btn;
   }
 
   function setColor(event) {
     const $btn = setButtonActive(event);
-    tool.setColor($btn.data('value'));
+    const newColor = $btn.data('value');
+
+    if (tool.color === 'vector' && newColor !== 'vector') {
+      vectorFirstPoint = null;
+      vectorColor = null;
+    }
+
+    tool.setColor(newColor);
   }
 
   function setSize(event) {
@@ -47,6 +56,39 @@ $(function() {
   }
 
   function mouseDown(event) {
+    if (tool.color === 'vector') {
+      const pos = mousePosition(event);
+
+        if (vectorFirstPoint === null) {
+          // first click - save the point
+          vectorFirstPoint = pos;
+
+          const vectorColorArray = tool.hexColor('vector');
+          vectorColor = Array.isArray(vectorColorArray)
+            ? vectorColorArray[Math.floor(Math.random() * vectorColorArray.length)]
+            : vectorColorArray;
+
+          tool.ctx.fillStyle = vectorColor;
+          tool.drawPixelatedCircle(pos.x, pos.y, tool.size);
+        } else {
+          // second click - draw the vector line
+          const data = tool.drawVector(vectorFirstPoint, pos, null, vectorColor);
+
+          socket.emit('draw', {
+            positions: data.positions,
+            colors: data.colors,
+            size: data.size,
+            isVector: true
+          });
+
+          // reset for next line
+          vectorFirstPoint = null;
+          vectorColor = null;
+        }
+
+      return;
+    }
+
     clicked = true;
     return positions.push(mousePosition(event));
   }
@@ -123,14 +165,14 @@ $(function() {
 
     imageObj.onload = function() {
       ctx.drawImage(this, 0, 0);
-      animatePixels();
+      // animatePixels();
     };
 
     imageObj.src = msg;
   });
 
   socket.on('draw', (msg) => {
-    tool.draw(msg.positions, msg.size, msg.colors);
+    tool.draw(msg.positions, msg.size, msg.colors, msg.isVector);
   });
 
   const goldColor = { r: 255, g: 215, b: 0 };
