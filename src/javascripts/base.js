@@ -9,8 +9,10 @@ $(function() {
   let clicked = false;
   let onCanvas = false;
   let positions = [];
-  let vectorFirstPoint = null;
+  let vectorStartPoint = null;
   let vectorColor = null;
+  let savedCanvasState = null;
+  let currentMousePos = null;
 
   function render() {
     if (positions.length > 0 && tool.color !== 'vector') {
@@ -43,8 +45,14 @@ $(function() {
     const newColor = $btn.data('value');
 
     if (tool.color === 'vector' && newColor !== 'vector') {
-      vectorFirstPoint = null;
+      // Restore canvas if we were drawing a vector preview
+      if (savedCanvasState !== null) {
+        ctx.putImageData(savedCanvasState, 0, 0);
+      }
+      vectorStartPoint = null;
       vectorColor = null;
+      savedCanvasState = null;
+      currentMousePos = null;
     }
 
     tool.setColor(newColor);
@@ -56,56 +64,87 @@ $(function() {
   }
 
   function mouseDown(event) {
+    clicked = true;
+    const pos = mousePosition(event);
+
     if (tool.color === 'vector') {
-      const pos = mousePosition(event);
+      // Start of vector drag - save the start point and choose color
+      vectorStartPoint = pos;
 
-        if (vectorFirstPoint === null) {
-          // first click - save the point
-          vectorFirstPoint = pos;
+      const vectorColorArray = tool.hexColor('vector');
+      vectorColor = Array.isArray(vectorColorArray)
+        ? vectorColorArray[Math.floor(Math.random() * vectorColorArray.length)]
+        : vectorColorArray;
 
-          const vectorColorArray = tool.hexColor('vector');
-          vectorColor = Array.isArray(vectorColorArray)
-            ? vectorColorArray[Math.floor(Math.random() * vectorColorArray.length)]
-            : vectorColorArray;
+      // Save the current canvas state before drawing preview
+      savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-          tool.ctx.fillStyle = vectorColor;
-          tool.drawPixelatedCircle(pos.x, pos.y, tool.size);
-        } else {
-          // second click - draw the vector line
-          const data = tool.drawVector(vectorFirstPoint, pos, null, vectorColor);
-
-          socket.emit('draw', {
-            positions: data.positions,
-            colors: data.colors,
-            size: data.size,
-            isVector: true
-          });
-
-          // reset for next line
-          vectorFirstPoint = null;
-          vectorColor = null;
-        }
-
+      tool.ctx.fillStyle = vectorColor;
+      tool.drawPixelatedCircle(pos.x, pos.y, tool.size);
       return;
     }
 
-    clicked = true;
-    return positions.push(mousePosition(event));
+    return positions.push(pos);
   }
 
   function mouseUp(event) {
+    if (tool.color === 'vector' && vectorStartPoint !== null && clicked) {
+      // End of vector drag - restore canvas and draw the final line
+      const endPos = mousePosition(event);
+      
+      // Restore canvas to remove preview
+      if (savedCanvasState !== null) {
+        ctx.putImageData(savedCanvasState, 0, 0);
+      }
+      
+      const data = tool.drawVector(vectorStartPoint, endPos, null, vectorColor);
+
+      socket.emit('draw', {
+        positions: data.positions,
+        colors: data.colors,
+        size: data.size,
+        isVector: true
+      });
+
+      // Reset for next line
+      vectorStartPoint = null;
+      vectorColor = null;
+      savedCanvasState = null;
+      currentMousePos = null;
+    }
+
     clicked = false;
     positions = [];
   }
 
   function mouseLeave(event) {
+    // Restore canvas if we were drawing a vector preview
+    if (tool.color === 'vector' && savedCanvasState !== null) {
+      ctx.putImageData(savedCanvasState, 0, 0);
+    }
+    
     positions = [];
+    vectorStartPoint = null;
+    vectorColor = null;
+    savedCanvasState = null;
+    currentMousePos = null;
   }
 
   function mouseMove(event) {
     if (clicked) {
       let pos = mousePosition(event);
-      positions.push(pos);
+      currentMousePos = pos;
+      
+      if (tool.color === 'vector' && vectorStartPoint !== null && savedCanvasState !== null) {
+        // Restore canvas to state before preview, then draw new preview
+        ctx.putImageData(savedCanvasState, 0, 0);
+        tool.ctx.fillStyle = vectorColor;
+        tool.drawPixelatedCircle(vectorStartPoint.x, vectorStartPoint.y, tool.size);
+        tool.bline(vectorStartPoint.x, vectorStartPoint.y, pos.x, pos.y, tool.size);
+        tool.drawPixelatedCircle(pos.x, pos.y, tool.size);
+      } else {
+        positions.push(pos);
+      }
     }
   }
 
