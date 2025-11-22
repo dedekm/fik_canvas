@@ -81,32 +81,35 @@ $(function() {
     const newColor = $btn.data('value');
 
     if (tool.color === 'vector' && newColor !== 'vector') {
-      // Restore canvas if we were drawing a vector preview
-      if (savedCanvasState !== null && vectorStartPoint !== null) {
-        ctx.putImageData(savedCanvasState, 0, 0);
-        
-        // Clear our preview for other players
-        socket.emit('vectorPreviewClear');
-        
-        vectorStartPoint = null;
-        vectorColor = null;
-        currentMousePos = null;
-        
-        // Check if there are still other players' previews
-        const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
-        if (hasOtherPreviews) {
-          // Keep saved state and draw other previews
-          savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          drawAllPreviews();
+      // Only restore canvas if we're ACTIVELY drawing a vector preview
+      // (vectorStartPoint !== null AND clicked means we have an unfinished preview)
+      if (vectorStartPoint !== null && clicked) {
+        if (savedCanvasState !== null) {
+          ctx.putImageData(savedCanvasState, 0, 0);
+          
+          // Clear our preview for other players
+          socket.emit('vectorPreviewClear');
+          
+          // Check if there are still other players' previews
+          const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+          if (hasOtherPreviews) {
+            // Keep saved state and draw other previews
+            savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            drawAllPreviews();
+          } else {
+            // No other previews, clear saved state
+            savedCanvasState = null;
+          }
         } else {
-          // No other previews, clear saved state
-          savedCanvasState = null;
+          // Clear our preview for other players even if no savedCanvasState
+          socket.emit('vectorPreviewClear');
         }
-      } else {
-        vectorStartPoint = null;
-        vectorColor = null;
-        currentMousePos = null;
       }
+      
+      // Always clear vector state when switching away from vector mode
+      vectorStartPoint = null;
+      vectorColor = null;
+      currentMousePos = null;
     }
 
     tool.setColor(newColor);
@@ -114,10 +117,43 @@ $(function() {
 
   function setSize(event) {
     const $btn = setButtonActive(event);
+    
+    // If we're actively drawing a vector preview, cancel it
+    // (vectorStartPoint !== null AND clicked means active preview)
+    if (tool.color === 'vector' && vectorStartPoint !== null && clicked) {
+      if (savedCanvasState !== null) {
+        ctx.putImageData(savedCanvasState, 0, 0);
+        
+        // Clear our preview for other players
+        socket.emit('vectorPreviewClear');
+        
+        // Check if there are still other players' previews
+        const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+        if (hasOtherPreviews) {
+          savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          drawAllPreviews();
+        } else {
+          savedCanvasState = null;
+        }
+      } else {
+        socket.emit('vectorPreviewClear');
+      }
+      
+      // Reset vector state
+      vectorStartPoint = null;
+      vectorColor = null;
+      currentMousePos = null;
+    }
+    
     tool.setSize($btn.data('value'));
   }
 
   function mouseDown(event) {
+    // Prevent default touch behavior to avoid duplicate events
+    if (event.type === 'touchstart') {
+      event.preventDefault();
+    }
+    
     clicked = true;
     const pos = mousePosition(event);
 
@@ -150,41 +186,85 @@ $(function() {
   }
 
   function mouseUp(event) {
+    // Check if event is from a button - if so, ignore it completely
+    const target = event.target || event.srcElement;
+    const isButton = $(target).hasClass('f-btn-color') || $(target).hasClass('f-btn-size') || 
+                     $(target).closest('.f-btn-color, .f-btn-size').length > 0;
+    
+    if (isButton) {
+      // Button clicks should not affect canvas operations
+      // Just clear the clicked state to prevent further drawing
+      clicked = false;
+      return;
+    }
+    
     if (tool.color === 'vector' && vectorStartPoint !== null && clicked) {
-      // End of vector drag - restore canvas and draw the final line
-      const endPos = mousePosition(event);
+      // Check if the event is on the canvas or if it's a valid canvas interaction
+      // This prevents touch events on buttons from completing vectors
+      const isCanvasEvent = target === canvas || $(target).closest('#f-canvas').length > 0;
       
-      // Restore canvas to remove all previews
-      if (savedCanvasState !== null) {
-        ctx.putImageData(savedCanvasState, 0, 0);
+      // Prevent default for canvas touch events
+      if (event.type === 'touchend' && isCanvasEvent) {
+        event.preventDefault();
       }
       
-      const data = tool.drawVector(vectorStartPoint, endPos, null, vectorColor);
+      if (isCanvasEvent) {
+        // End of vector drag - restore canvas and draw the final line
+        const endPos = mousePosition(event);
+        
+        // Restore canvas to remove all previews
+        if (savedCanvasState !== null) {
+          ctx.putImageData(savedCanvasState, 0, 0);
+        }
+        
+        const data = tool.drawVector(vectorStartPoint, endPos, null, vectorColor);
 
-      socket.emit('draw', {
-        positions: data.positions,
-        colors: data.colors,
-        size: data.size,
-        isVector: true
-      });
+        socket.emit('draw', {
+          positions: data.positions,
+          colors: data.colors,
+          size: data.size,
+          isVector: true
+        });
 
-      // Clear our preview for other players
-      socket.emit('vectorPreviewClear');
+        // Clear our preview for other players
+        socket.emit('vectorPreviewClear');
 
-      // Reset for next line
-      vectorStartPoint = null;
-      vectorColor = null;
-      currentMousePos = null;
+        // Reset for next line
+        vectorStartPoint = null;
+        vectorColor = null;
+        currentMousePos = null;
 
-      // Check if there are still other players' previews
-      const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
-      if (hasOtherPreviews) {
-        // Save the clean state with our drawn vector, then draw other previews
-        savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        drawAllPreviews();
+        // Check if there are still other players' previews
+        const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+        if (hasOtherPreviews) {
+          // Save the clean state with our drawn vector, then draw other previews
+          savedCanvasState = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          drawAllPreviews();
+        } else {
+          // No other previews, clear saved state
+          savedCanvasState = null;
+        }
       } else {
-        // No other previews, clear saved state
-        savedCanvasState = null;
+        // Touch ended outside canvas (e.g., on body), cancel the vector preview
+        if (savedCanvasState !== null && vectorStartPoint !== null) {
+          ctx.putImageData(savedCanvasState, 0, 0);
+          
+          // Check if there are other players' previews to redraw
+          const hasOtherPreviews = Object.keys(otherPlayersPreviews).length > 0;
+          if (hasOtherPreviews) {
+            drawAllPreviews();
+          } else {
+            savedCanvasState = null;
+          }
+          
+          // Clear our preview for other players
+          socket.emit('vectorPreviewClear');
+        }
+        
+        // Reset vector state
+        vectorStartPoint = null;
+        vectorColor = null;
+        currentMousePos = null;
       }
     }
 
@@ -220,6 +300,11 @@ $(function() {
 
   function mouseMove(event) {
     if (clicked) {
+      // Prevent default touch behavior to avoid scrolling
+      if (event.type === 'touchmove') {
+        event.preventDefault();
+      }
+      
       let pos = mousePosition(event);
       currentMousePos = pos;
       
@@ -260,15 +345,20 @@ $(function() {
     let pageX, pageY;
     e = e || window.event;
 
-    if (e.touches) {
+    // For touch events: use touches for touchstart/touchmove, changedTouches for touchend
+    if (e.touches && e.touches.length > 0) {
       pageX = e.touches[0].clientX;
       pageY = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+      // touchend event - touches is empty, use changedTouches instead
+      pageX = e.changedTouches[0].clientX;
+      pageY = e.changedTouches[0].clientY;
     } else {
       pageX = e.pageX;
       pageY = e.pageY;
     }
 
-    if (!pageX) {
+    if (!pageX && pageX !== 0) {
       pageX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
       pageY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
     }
