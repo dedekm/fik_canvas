@@ -9,8 +9,71 @@ $(function() {
   let clicked = false;
   let onCanvas = false;
   let positions = [];
+  let sprayActive = false;
+  let sprayPos = null;
+  let sprayTimer = null;
+  let sprayQueue = [];
+
+  function clampToCanvas(pos) {
+    return {
+      x: Math.max(0, Math.min(canvas.width - 1, pos.x)),
+      y: Math.max(0, Math.min(canvas.height - 1, pos.y))
+    };
+  }
+
+  function stampSpray(x, y) {
+    const dots = tool.sprayDots(x, y, tool.size);
+    if (!dots.length) return;
+    sprayQueue.push(...dots);
+    if (sprayQueue.length > 2000) {
+      sprayQueue.splice(0, sprayQueue.length - 2000);
+    }
+  }
+
+  // Paint and send once per frame. The 5ms timer only queues dabs.
+  function flushSpray() {
+    if (!sprayQueue.length) return;
+    const dots = sprayQueue;
+    sprayQueue = [];
+
+    const drawn = tool.drawSpray(dots);
+    if (!drawn.positions.length) return;
+
+    socket.emit('draw', {
+      positions: drawn.positions,
+      colors: drawn.colors,
+      size: drawn.size,
+      isSpray: true
+    });
+  }
+
+  function stopSpray() {
+    if (sprayTimer !== null) {
+      clearInterval(sprayTimer);
+      sprayTimer = null;
+    }
+    sprayActive = false;
+    sprayPos = null;
+    flushSpray();
+  }
+
+  function startSpray(pos) {
+    if (sprayTimer !== null) {
+      clearInterval(sprayTimer);
+      sprayTimer = null;
+    }
+    sprayActive = true;
+    sprayPos = clampToCanvas(pos);
+    stampSpray(sprayPos.x, sprayPos.y);
+    sprayTimer = setInterval(() => {
+      if (!sprayActive || !sprayPos) return;
+      stampSpray(sprayPos.x, sprayPos.y);
+    }, PaintTool.SPRAY_INTERVAL_MS);
+  }
 
   function render() {
+    flushSpray();
+
     if (positions.length > 0) {
       const data = tool.draw(positions);
 
@@ -38,7 +101,14 @@ $(function() {
 
   function setColor(event) {
     const $btn = setButtonActive(event);
-    tool.setColor($btn.data('value'));
+    const newColor = $btn.data('value');
+
+    if (tool.color === 'spray' && newColor !== 'spray') {
+      stopSpray();
+    }
+
+    tool.setColor(newColor);
+    canvas.style.cursor = newColor === 'spray' ? 'crosshair' : '';
   }
 
   function setSize(event) {
@@ -48,21 +118,42 @@ $(function() {
 
   function mouseDown(event) {
     clicked = true;
+
+    if (tool.color === 'spray') {
+      startSpray(mousePosition(event));
+      return;
+    }
+
     return positions.push(mousePosition(event));
   }
 
   function mouseUp(event) {
     clicked = false;
+    stopSpray();
     positions = [];
   }
 
   function mouseLeave(event) {
+    if (sprayActive) {
+      stopSpray();
+      clicked = false;
+    }
+
     positions = [];
   }
 
   function mouseMove(event) {
     if (clicked) {
       let pos = mousePosition(event);
+
+      if (tool.color === 'spray') {
+        if (sprayActive) {
+          sprayPos = clampToCanvas(pos);
+          stampSpray(sprayPos.x, sprayPos.y);
+        }
+        return;
+      }
+
       positions.push(pos);
     }
   }
@@ -109,7 +200,7 @@ $(function() {
 
   $(document).on('mouseleave', 'body', mouseLeave);
   $(document).on('mousedown touchstart', '#f-canvas', mouseDown);
-  $(document).on('mouseup touchend contextmenu', mouseUp);
+  $(document).on('mouseup touchend touchcancel contextmenu', mouseUp);
   $(document).on('mousemove touchmove', 'body', mouseMove);
   $(document).on('click', '.f-btn-color', setColor);
   $(document).on('click', '.f-btn-size', setSize);
@@ -130,7 +221,11 @@ $(function() {
   });
 
   socket.on('draw', (msg) => {
-    tool.draw(msg.positions, msg.size, msg.colors);
+    if (msg.isSpray) {
+      tool.drawSpray(msg.positions);
+    } else {
+      tool.draw(msg.positions, msg.size, msg.colors);
+    }
   });
 
   const goldColor = { r: 255, g: 215, b: 0 };

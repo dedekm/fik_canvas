@@ -39,15 +39,53 @@ function interpolateColor(color1, color2, factor) {
   return rgbToHex(interpolatedColor);
 }
 
+// Festival color for the spray tool. Black until this year's color is chosen.
+const SPRAY_COLOR = "#000000";
+
 const ALLOWED_COLORS = {
   black: "#000000",
   green: "#0affcdff",
   // gradient: ["#a4e0f2", "#ead188", "#e48f2e"],
   gold: "#ffd700",
-  red: "#fe0900ff"
+  red: "#fe0900ff",
+  spray: SPRAY_COLOR
 };
 
 const ALLOWED_SIZES = [2, 4, 8];
+
+// Cloud diameter in screen pixels. Button 1 is 24. Buttons 2 and 3 are
+// 2× and 3× so the bigger pencil squares still read as a spray.
+const SPRAY_DIAMETER = {
+  2: 24,
+  4: 48,
+  8: 72
+};
+
+function sprayDiameter(size) {
+  return SPRAY_DIAMETER[size] || SPRAY_DIAMETER[2];
+}
+
+// Size buttons 2 and 3 stamp the same squares as the pencil (4 and 8).
+// Button 1 (value 2) stays a 1px airbrush.
+function sprayPixelSize(size) {
+  if (size === 4 || size === 8) return size;
+  return 1;
+}
+
+// Pencil squares per dab. Null keeps the MS Paint attempt count, which is
+// right for 1px specks. A 4px square already covers 16 specks and an 8px
+// square covers 64, so the same attempt count tiles the cloud shut even
+// on a fast stroke. A few squares per dab stay stippled while the pointer
+// moves and still fill in while it is held.
+function sprayStampBudget(pixel) {
+  if (pixel === 4) return 4;
+  if (pixel === 8) return 2;
+  return null;
+}
+
+// JS Paint sprays on this interval while the button is held, including when
+// the pointer stays still. Moving fast therefore leaves a sparser trail.
+const SPRAY_INTERVAL_MS = 5;
 
 class PaintTool {
   constructor(canvas, client = true) {
@@ -169,6 +207,84 @@ class PaintTool {
       size: size,
     };
   }
+
+  // One airbrush dab. Same scatter as MS Paint: try points in the square
+  // and keep those inside the circle. Size 1 is a 1px speck. Sizes 2 and 3
+  // snap onto the pencil grid and place only sprayStampBudget squares.
+  sprayDots(x, y, size) {
+    const pixel = sprayPixelSize(size);
+    const r = sprayDiameter(size) / 2;
+    const dots = [];
+    const seen = new Set();
+    const budget = sprayStampBudget(pixel);
+    const maxTries = budget == null ? 6 + r / 5 : 40;
+
+    for (let i = 0; i < maxTries && (budget == null || dots.length < budget); i++) {
+      const rx = (Math.random() * 2 - 1) * r;
+      const ry = (Math.random() * 2 - 1) * r;
+      if (rx * rx + ry * ry > r * r) continue;
+
+      let px;
+      let py;
+      if (pixel === 1) {
+        px = x + ~~rx;
+        py = y + ~~ry;
+      } else {
+        const cx = roundToPixel(x + rx, pixel);
+        const cy = roundToPixel(y + ry, pixel);
+        const dx = cx - x;
+        const dy = cy - y;
+        if (dx * dx + dy * dy > r * r) continue;
+        px = cx - pixel / 2;
+        py = cy - pixel / 2;
+      }
+
+      const key = px + ',' + py;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      dots.push({ x: px, y: py, size: pixel });
+    }
+
+    return dots;
+  }
+
+  // Stamp already-chosen dots. Randomness stays on the drawing client so the
+  // server and the other clients paint the same pixels. Color is forced to
+  // SPRAY_COLOR until a festival color replaces it.
+  drawSpray(positions, size) {
+    const hex = SPRAY_COLOR;
+    const drawn = [];
+    const fallback = sprayPixelSize(size);
+
+    this.ctx.fillStyle = hex;
+
+    if (positions) {
+      const limit = Math.min(positions.length, 2000);
+      for (let i = 0; i < limit; i++) {
+        const p = positions[i];
+        if (!p) continue;
+        const x = Number(p.x);
+        const y = Number(p.y);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+        const pixel = p.size == null ? fallback : sprayPixelSize(p.size);
+        const px = pixel === 1 ? (x | 0) : x;
+        const py = pixel === 1 ? (y | 0) : y;
+        if (px + pixel <= 0 || py + pixel <= 0 || px >= this.canvas.width || py >= this.canvas.height) continue;
+        this.ctx.fillRect(px, py, pixel, pixel);
+        drawn.push({ x: px, y: py, size: pixel });
+      }
+    }
+
+    return {
+      colors: [hex],
+      positions: drawn,
+      size: drawn.length ? drawn[0].size : fallback,
+      isSpray: true
+    };
+  }
 }
 
 module.exports = PaintTool;
+module.exports.SPRAY_COLOR = SPRAY_COLOR;
+module.exports.SPRAY_INTERVAL_MS = SPRAY_INTERVAL_MS;
+module.exports.SPRAY_DIAMETER = SPRAY_DIAMETER;

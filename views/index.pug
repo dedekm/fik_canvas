@@ -12,7 +12,7 @@ block content
         img.f-btn-image-off(src="images/btn_black.svg")
         img.f-btn-image-on(src="images/btn_black_on.svg")
 
-      each val in ["green", "vector", "red"]
+      each val in ["green", "red", "spray"]
         .f-btn.f-btn-color(data-value=val, data-type='color')
           img.f-btn-image-off(src="images/btn_" + val + ".svg")
           img.f-btn-image-on(src="images/btn_" + val + "_on.svg")
@@ -30,4 +30,4 @@ block content
     if projection
       img.f-qrcode(src='images/qrcode.svg')
 
-  script(src='/javascripts/application.js')
+  script(src='/javascripts/application.js?v2026.2')

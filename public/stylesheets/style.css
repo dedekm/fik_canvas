@@ -56,13 +56,17 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 6px;
 }
 .f-controls .f-btn {
   cursor: pointer;
+  flex: 1 1 0;
+  min-width: 0;
+  line-height: 0;
 }
 .f-controls .f-btn img {
-  width: 95px;
-  height: 95px;
+  width: 100%;
+  height: auto;
 }
 .f-controls .f-btn .f-btn-image-on {
   display: none;
@@ -82,5 +86,3 @@ img {
 .f-controls .f-btn:hover .f-btn-image-off {
   display: none;
 }
-
-/*# sourceMappingURL=style.css.map */

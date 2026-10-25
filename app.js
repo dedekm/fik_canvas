@@ -79,8 +79,13 @@ app.io.on('connection', (socket) => {
   socket.emit('loadImage', canvas.toDataURL());
 
   socket.on('draw', (req) => {
-    tool.draw(req.positions, req.size, req.colors);
-    socket.broadcast.emit('draw', req);
+    if (req && req.isSpray) {
+      const data = tool.drawSpray(req.positions, req.size);
+      socket.broadcast.emit('draw', data);
+    } else {
+      tool.draw(req.positions, req.size, req.colors);
+      socket.broadcast.emit('draw', req);
+    }
     canvas.dirty = true;
   });
 });
