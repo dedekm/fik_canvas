@@ -1,5 +1,9 @@
 extends layout
 
+mixin btn-images(name)
+  svg.f-btn-image-off: use(href="/images/sprite.svg#btn_" + name)
+  svg.f-btn-image-on: use(href="/images/sprite.svg#btn_" + name + "_on")
+
 block content
   .f-bg
   .f-container
@@ -9,23 +13,18 @@ block content
 
     .f-controls
       .f-btn.f-btn-color.f-btn--active(data-value='black', data-type='color')
-        img.f-btn-image-off(src="images/btn_black.svg")
-        img.f-btn-image-on(src="images/btn_black_on.svg")
+        +btn-images("black")
 
       each val in ["green", "red", "spray"]
         .f-btn.f-btn-color(data-value=val, data-type='color')
-          img.f-btn-image-off(src="images/btn_" + val + ".svg")
-          img.f-btn-image-on(src="images/btn_" + val + "_on.svg")
+          +btn-images(val)
 
       .f-btn.f-btn-size(data-value=2, data-type='size')
-        img.f-btn-image-off(src="images/btn_1.svg")
-        img.f-btn-image-on(src="images/btn_1_on.svg")
+        +btn-images("1")
       .f-btn.f-btn-size.f-btn--active(data-value=4, data-type='size')
-        img.f-btn-image-off(src="images/btn_2.svg")
-        img.f-btn-image-on(src="images/btn_2_on.svg")
+        +btn-images("2")
       .f-btn.f-btn-size(data-value=8, data-type='size')
-        img.f-btn-image-off(src="images/btn_3.svg")
-        img.f-btn-image-on(src="images/btn_3_on.svg")
+        +btn-images("3")
 
     if projection
       img.f-qrcode(src='images/qrcode.svg')

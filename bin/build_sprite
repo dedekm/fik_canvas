@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+// Builds public/images/sprite.svg from src/images/btn_*.svg.
+// Every file becomes <symbol id="<file name>">. Inline <style> classes are
+// converted to presentation attributes, so symbols can't clash on `.cls-N`,
+// and editor metadata (inkscape/sodipodi, ids) is dropped. Float noise in
+// rect geometry (e.g. -1.0800018) is rounded to 2 decimals.
+
+const fs = require('fs')
+const path = require('path')
+
+const src = path.join(__dirname, '..', 'src', 'images')
+const out = path.join(__dirname, '..', 'public', 'images', 'sprite.svg')
+
+const files = fs.readdirSync(src).filter(f => /^btn_.*\.svg$/.test(f)).sort()
+
+function parseRules(css) {
+  const rules = []
+  for (const m of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    const classes = [...m[1].matchAll(/\.([\w-]+)/g)].map(c => c[1])
+    const decls = m[2].split(';').map(d => d.split(':').map(s => s.trim())).filter(d => d[0] && d[1])
+    rules.push({ classes, decls })
+  }
+  return rules
+}
+
+function toSymbol(file) {
+  const id = path.basename(file, '.svg')
+  let svg = fs.readFileSync(path.join(src, file), 'utf8')
+
+  const viewBox = svg.match(/<svg[^>]*\sviewBox="([^"]+)"/)[1]
+  const css = [...svg.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n')
+  const rules = parseRules(css)
+
+  let body = svg.slice(svg.indexOf('>', svg.indexOf('<svg')) + 1, svg.lastIndexOf('</svg>'))
+  body = body
+    .replace(/<\?xml[\s\S]*?\?>/g, '')
+    .replace(/<(sodipodi|inkscape):[\s\S]*?\/>/g, '')
+    .replace(/<defs[^>]*>[\s\S]*?<\/defs>/g, '')
+
+  body = body.replace(/<(path|rect|circle|ellipse|polygon|polyline|line|g)\b([^>]*?)(\/?)>/g, (_, tag, attrs, close) => {
+    const cls = (attrs.match(/\sclass="([^"]*)"/) || [, ''])[1].split(/\s+/).filter(Boolean)
+    const style = {}
+    for (const rule of rules) {
+      if (rule.classes.some(c => cls.includes(c))) {
+        for (const [k, v] of rule.decls) style[k] = v.replace(/^(-?[\d.]+)px$/, '$1')
+      }
+    }
+    const inline = (attrs.match(/\sstyle="([^"]*)"/) || [, ''])[1]
+    for (const d of inline.split(';')) {
+      const [k, v] = d.split(':').map(s => s.trim())
+      if (k && v) style[k] = v.replace(/^(-?[\d.]+)px$/, '$1')
+    }
+    attrs = attrs
+      .replace(/\s(class|id|style|(inkscape|sodipodi):[\w-]+)="[^"]*"/g, '')
+      .replace(/\s+/g, ' ')
+      .trimEnd()
+    attrs = attrs.replace(/\s(x|y|width|height)="(-?[\d.]+)"/g, (_, k, v) => ` ${k}="${+(+v).toFixed(2)}"`)
+    const styleAttrs = Object.entries(style).map(([k, v]) => ` ${k}="${v}"`).join('')
+    return `<${tag}${attrs}${styleAttrs}${close}>`
+  })
+
+  return `<symbol id="${id}" viewBox="${viewBox}">${body.replace(/\s*\n\s*/g, '')}</symbol>`
+}
+
+const sprite = '<svg xmlns="http://www.w3.org/2000/svg">\n' +
+  files.map(toSymbol).join('\n') + '\n</svg>\n'
+
+fs.writeFileSync(out, sprite)
+console.log(`${path.relative(process.cwd(), out)}: ${files.length} symbols, ${sprite.length} bytes`)

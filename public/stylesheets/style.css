@@ -64,9 +64,9 @@ img {
   min-width: 0;
   line-height: 0;
 }
-.f-controls .f-btn img {
+.f-controls .f-btn svg {
   width: 100%;
-  height: auto;
+  aspect-ratio: 1;
 }
 .f-controls .f-btn .f-btn-image-on {
   display: none;
@@ -86,3 +86,5 @@ img {
 .f-controls .f-btn:hover .f-btn-image-off {
   display: none;
 }
+
+/*# sourceMappingURL=style.css.map */

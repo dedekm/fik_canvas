@@ -8,6 +8,7 @@
     "nodemon": "NODE_ENV=development DEBUG=fik-canvas:* nodemon ./bin/www",
     "sass": "sass --watch src/stylesheets/style.sass public/stylesheets/style.css",
     "watchify": "watchify src/javascripts/base.js -o public/javascripts/application.js",
+    "sprite": "node bin/build_sprite",
     "compile": "browserify src/javascripts/base.js -o public/javascripts/application.js"
   },
   "dependencies": {
