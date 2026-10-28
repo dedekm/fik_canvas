@@ -1,19 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #e6e7e9;
-      }
-
-      .cls-2 {
-        fill: #231f20;
-        stroke: #231f20;
-        stroke-miterlimit: 10;
-        stroke-width: 130px;
-      }
-    </style>
-  </defs>
-  <rect class="cls-2" x="-1.08" y="-2.16" width="502.16" height="502.16"/>
-  <path class="cls-1" d="M121.21,329.03h105.82v-120.99h-92.87v-42.18h32.93c40.7,0,66.23-20.35,66.23-56.98h43.66v220.15h106.19v46.99H121.21v-46.99Z"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 28.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Vrstva_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 500 500" style="enable-background:new 0 0 500 500;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#1D1D1B;}
+	.st1{fill:none;}
+	.st2{fill:#FFFFFF;}
+	.st3{fill:#231F20;}
+	.st4{fill:#FE3600;}
+	.st5{fill:#FFAFFF;}
+	.st6{fill:#2B715F;}
+	.st7{fill:#13090C;}
+	.st8{fill:#FB28AB;}
+	.st9{fill:#FB3E02;}
+	.st10{fill:#140E12;}
+</style>
+<rect class="st0" width="500" height="500"/>
+<g>
+	<rect x="-1.3" y="112.9" class="st1" width="501.5" height="294.7"/>
+	<path class="st2" d="M165.1,317.8h59.2V203.1l-54.8,15.5v-52.9c49.2-12.6,62.5-25.9,65.1-49.2l0.4-3.7H288v205h55.1v54h-178V317.8z
+		"/>
+</g>
 </svg>

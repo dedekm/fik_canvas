@@ -36,6 +36,7 @@ function toSymbol(file) {
     .replace(/<\?xml[\s\S]*?\?>/g, '')
     .replace(/<(sodipodi|inkscape):[\s\S]*?\/>/g, '')
     .replace(/<defs[^>]*>[\s\S]*?<\/defs>/g, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/g, '')
 
   body = body.replace(/<(path|rect|circle|ellipse|polygon|polyline|line|g)\b([^>]*?)(\/?)>/g, (_, tag, attrs, close) => {
     const cls = (attrs.match(/\sclass="([^"]*)"/) || [, ''])[1].split(/\s+/).filter(Boolean)

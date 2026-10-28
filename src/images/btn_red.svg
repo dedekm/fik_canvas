@@ -1,19 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #ec1c24;
-        stroke: #ec1c24;
-        stroke-miterlimit: 10;
-        stroke-width: 40px;
-      }
-
-      .cls-2 {
-        fill: #e6e7e9;
-      }
-    </style>
-  </defs>
-  <rect class="cls-1" x="0" y="-2.16" width="502.16" height="502.16"/>
-  <path class="cls-2" d="M115.69,108.89h197.58c24.42,0,44.03,8.51,58.83,23.31,15.17,15.17,23.31,34.04,23.31,58.46v.37c0,24.05-7.77,42.55-22.57,57.35s-33.67,22.94-57.72,22.94h-52.17l128.02,104.71h-79.55l-119.88-97.31c-4.44-4.07-8.14-7.03-14.06-7.03-7.03,0-11.47,5.18-11.47,12.21v92.13h-50.32V108.89ZM312.16,224.33c9.62,0,18.13-3.7,24.05-9.25,5.55-5.92,8.88-13.69,8.88-23.68v-.37c0-9.99-3.33-17.76-8.88-23.68-5.92-5.55-14.43-9.25-24.05-9.25h-115.81c-9.62,0-18.13,3.7-24.05,9.25-5.55,5.92-8.88,13.69-8.88,23.68v.37c0,9.99,3.33,17.76,8.88,23.68,5.92,5.55,14.43,9.25,24.05,9.25h115.81Z"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 28.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Vrstva_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 500 500" style="enable-background:new 0 0 500 500;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#1D1D1B;}
+	.st1{fill:none;}
+	.st2{fill:#FFFFFF;}
+	.st3{fill:#231F20;}
+	.st4{fill:#FE3600;}
+	.st5{fill:#FFAFFF;}
+	.st6{fill:#2B715F;}
+	.st7{fill:#13090C;}
+	.st8{fill:#FB28AB;}
+	.st9{fill:#FB3E02;}
+	.st10{fill:#140E12;}
+</style>
+<rect class="st4" width="500" height="500"/>
+<g>
+	<rect x="-1.3" y="112.9" class="st1" width="501.5" height="294.7"/>
+	<path class="st2" d="M182.7,112.8h62.2c44.8,0,80.7,35.9,80.7,81.4c0,31.1-16.6,56.2-41.8,69.2l39.6,111h-52.2l-32.9-101.7H233
+		v101.4h-50.3V112.8z M244.9,223.5c17.8,0,28.9-14.1,28.9-29.2c0-15.5-11.1-29.6-28.9-29.6H233v58.8H244.9z"/>
+</g>
 </svg>
