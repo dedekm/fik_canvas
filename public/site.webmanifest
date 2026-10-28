@@ -1,0 +1,23 @@
+{
+  "name": "FIK DEDEX MACHINE",
+  "short_name": "FIK DEDEX",
+  "description": "ultimate live 8-bit battle",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#1D1D1B",
+  "background_color": "#1D1D1B",
+  "display": "standalone"
+}
