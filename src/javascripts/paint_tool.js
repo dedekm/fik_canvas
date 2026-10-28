@@ -39,15 +39,16 @@ function interpolateColor(color1, color2, factor) {
   return rgbToHex(interpolatedColor);
 }
 
-// Festival color for the spray tool. Black until this year's color is chosen.
+// Festival color for the spray tool.
 const SPRAY_COLOR = "#000000";
 
 const ALLOWED_COLORS = {
   black: "#000000",
-  green: "#0affcdff",
+  red: "#fa3b00",
+  green: "#2e705e",
+  pink: "#e8affe",
   // gradient: ["#a4e0f2", "#ead188", "#e48f2e"],
   gold: "#ffd700",
-  red: "#fe0900ff",
   spray: SPRAY_COLOR
 };
 
@@ -92,7 +93,7 @@ class PaintTool {
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
     this.size = 4;
-    this.color = 'black';
+    this.color = 'red';
 
     this.client = client;
 
@@ -249,8 +250,8 @@ class PaintTool {
   }
 
   // Stamp already-chosen dots. Randomness stays on the drawing client so the
-  // server and the other clients paint the same pixels. Color is forced to
-  // SPRAY_COLOR until a festival color replaces it.
+  // server and the other clients paint the same pixels. Color is always
+  // SPRAY_COLOR.
   drawSpray(positions, size) {
     const hex = SPRAY_COLOR;
     const drawn = [];

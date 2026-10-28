@@ -40,7 +40,7 @@ if (images[0]) {
   }
   img.src = dir + "/" + images[0].file;
 } else {
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = "#e8affe";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 

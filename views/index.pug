@@ -12,10 +12,10 @@ block content
     canvas#f-canvas(width='700' height='700')
 
     .f-controls
-      .f-btn.f-btn-color.f-btn--active(data-value='black', data-type='color')
-        +btn-images("black")
+      .f-btn.f-btn-color.f-btn--active(data-value='red', data-type='color')
+        +btn-images("red")
 
-      each val in ["green", "red", "spray"]
+      each val in ["green", "pink", "spray"]
         .f-btn.f-btn-color(data-value=val, data-type='color')
           +btn-images(val)
 

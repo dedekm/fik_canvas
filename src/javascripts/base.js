@@ -90,7 +90,7 @@ $(function() {
   }
 
   function setButtonActive(event) {
-    const $btn = $(event.target.parentNode);
+    const $btn = $(event.target).closest('.f-btn');
     const type = $btn.data('type');
 
     $(".f-btn--active[data-type='" + type + "'").removeClass('f-btn--active');
@@ -214,7 +214,7 @@ $(function() {
 
     imageObj.onload = function() {
       ctx.drawImage(this, 0, 0);
-      animatePixels();
+      // animatePixels(); // gold shimmer, off for 2026 colors
     };
 
     imageObj.src = msg;
